@@ -1,14 +1,24 @@
 pub mod app;
+pub mod api;
 pub mod model;
-mod api;
 
-#[cfg(feature = "hydrate")]
-#[wasm_bindgen::prelude::wasm_bindgen]
-pub fn hydrate() {
-    use app::*;
-    use leptos::*;
+use cfg_if::cfg_if;
 
-    console_error_panic_hook::set_once();
+cfg_if! {
+if #[cfg(feature = "hydrate")] {
 
-    mount_to_body(App);
+  use wasm_bindgen::prelude::wasm_bindgen;
+
+    #[wasm_bindgen]
+    pub fn hydrate() {
+      use app::*;
+      use leptos::*;
+
+      console_error_panic_hook::set_once();
+
+      leptos::mount_to_body(move || {
+          view! { <App/> }
+      });
+    }
+}
 }

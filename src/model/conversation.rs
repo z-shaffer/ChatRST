@@ -3,19 +3,18 @@ use serde::Serialize;
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Conversation {
-    pub messages: Vec<message>
+    pub messages: Vec<Message>
 }
-
 impl Conversation {
-    pub fn new() -> Conversation {
+    pub fn new() -> Conversation{
         Conversation {
-            messages: Vec::new()
+            messages: Vec::new(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Message {
-    pub userMsg: bool,
+    pub user: bool,
     pub text: String,
 }
