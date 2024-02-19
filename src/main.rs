@@ -1,3 +1,9 @@
+use cfg_if::cfg_if;
+
+use api::ws;
+pub mod api;
+pub mod model;
+
 #[cfg(feature = "ssr")]
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -11,6 +17,13 @@ async fn main() -> std::io::Result<()> {
     let addr = conf.leptos_options.site_addr;
     // Generate the list of routes in your Leptos App
     let routes = generate_route_list(App);
+
+    #[get("/style.css")]
+    async fn css() -> impl Responder {
+        actix_files::NamedFile::open_async("./style/output.css").await
+    }
+
+    let model = web::Data::new(get_language_model());
     println!("listening on http://{}", &addr);
 
     HttpServer::new(move || {
@@ -18,12 +31,14 @@ async fn main() -> std::io::Result<()> {
         let site_root = &leptos_options.site_root;
 
         App::new()
+            .app_data(model.clone())
             // serve JS/WASM/CSS from `pkg`
             .service(Files::new("/pkg", format!("{site_root}/pkg")))
             // serve other assets from the `assets` directory
             .service(Files::new("/assets", site_root))
             // serve the favicon from /favicon.ico
             .service(favicon)
+            .service(css)
             .leptos_routes(leptos_options.to_owned(), routes.to_owned(), App)
             .app_data(web::Data::new(leptos_options.to_owned()))
         //.wrap(middleware::Compress::default())
@@ -43,6 +58,30 @@ async fn favicon(
     Ok(actix_files::NamedFile::open(format!(
         "{site_root}/favicon.ico"
     ))?)
+}
+
+cfg_if! {
+    if #[cfg(feature = "ssr")] {
+        use llm::models::Llama;
+        use actix_web::*;
+        use std::env;
+        use dotenv::dotenv;
+
+        fn get_language_model() -> LLama {
+            use std::path::PathBuf;
+            dotenv().ok();
+            let model_path = env::var("MODEL_PATH").expect("MODEL_PATH must be set");
+
+            llm:load::<Llama>(
+                &PathBuf::from(&model_path),
+                llm::TokenizerSource::Embedded,
+                Default::default(),
+                llm:load_progrss_callback_stdout,
+            ).unwrap_or_else(|err| {
+                panic!("Failed to load model from {model_path:?}: {err}")
+            })
+        }
+    }
 }
 
 #[cfg(not(any(feature = "ssr", feature = "csr")))]

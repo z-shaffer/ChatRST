@@ -17,7 +17,8 @@ pub fn App() -> impl IntoView {
         set_conversation.update(move |c| {
            c.message.push(user_message);
         });
-        // TODO send msg
+
+        converse(conversation.get())
     });
     view! {
         // injects a stylesheet into the document <head>

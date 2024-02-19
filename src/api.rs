@@ -10,7 +10,7 @@ pub async fn converse(prompt: Conversation) -> Result<String, ServerFnError> {
     use actix_web::dev::ConnectionInfo;
 
     let model = extract(|data: Data<Llama>, _connection: ConnectionInfo| async {
-        data.into_inner();
+        data.into_inner()
     }).await.unwrap();
     use llm::KnownModel;
     let character_name = "### Assistant";
@@ -45,14 +45,14 @@ pub async fn converse(prompt: Conversation) -> Result<String, ServerFnError> {
             prompt: format!("{persona}\n{history}\n{character_name}:")
                 .as_str()
                 .into(),
-            paramters: Some(&llm::InferenceParameters::default()),
+            paramters: &llm::InferenceParameters::default(),
         play_back_previous_tokens: false,
         maximum_token_count: None,
         },
         &mut Default::default(),
         inference_callback(String::form(user_name), &mut buf, &mut res),
     ).unwrap_or_else(|e| panic!("{e}"));
-    Ok(String::from(""))
+    Ok(res)
 }
 
 cfg_if! {
