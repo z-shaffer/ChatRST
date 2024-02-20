@@ -38,6 +38,7 @@ pub fn App() -> impl IntoView {
 fn HomePage() -> impl IntoView {
     let (conversation, set_conversation) = create_signal(Conversation::new());
 
+    // Send a new message, initiating a conversation
     let send = create_action(move |new_message: &String| {
         let mut curr = conversation.get_untracked();
         let user_message = Message {
@@ -49,6 +50,7 @@ fn HomePage() -> impl IntoView {
         converse(curr)
     });
 
+    // Effect to display ... while waiting for response
     create_effect(move |_| {
         log!("{:?}", send.input().get());
         if let Some(_) = send.input().get() {
@@ -62,6 +64,7 @@ fn HomePage() -> impl IntoView {
         }
     });
 
+    // Effect to handle changes in the send value, updating the conversation accordingly
     create_effect(move |_| {
         log!("{:?}", send.value().get());
         if let Some(Ok(response)) = send.value().get() {

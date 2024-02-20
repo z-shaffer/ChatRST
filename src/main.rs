@@ -24,6 +24,7 @@ async fn main() -> std::io::Result<()> {
         actix_files::NamedFile::open_async("./style/output.css").await
     }
 
+    // Create an HTTP server with routes and configurations to host the language model
     HttpServer::new(move || {
         let leptos_options = &conf.leptos_options;
         let site_root = &leptos_options.site_root;
@@ -39,11 +40,12 @@ async fn main() -> std::io::Result<()> {
             )
             .service(Files::new("/", site_root))
     })
-        .bind(&addr)?
-        .run()
-        .await
+    .bind(&addr)?
+    .run()
+    .await
 }
 
+// Conditional compilation to load the language model if the ssr is enabled
 cfg_if! {
     if #[cfg(feature = "ssr")] {
         use llm::models::Llama;

@@ -37,6 +37,7 @@ pub async fn converse(prompt: Conversation) -> Result<String, ServerFnError> {
     let mut rng = rand::thread_rng();
     let mut buf = String::new();
 
+    // Build the format for how the AI should infer a response
     session
         .infer(
             model.as_ref(),
@@ -53,10 +54,10 @@ pub async fn converse(prompt: Conversation) -> Result<String, ServerFnError> {
             inference_callback(String::from(user_name), &mut buf, &mut res),
         )
         .unwrap_or_else(|e| panic!("{e}"));
-
     Ok(res)
 }
 
+// Compilation for an inference callback function when ssr is active
 cfg_if! {
     if #[cfg(feature = "ssr")] {
     use std::convert::Infallible;
@@ -69,6 +70,7 @@ cfg_if! {
             use llm::InferenceFeedback::Halt;
             use llm::InferenceFeedback::Continue;
 
+            // Closure to handle inference responses, including inferred tokens and end-of-token (EOT) signals
             move |resp| match resp {
                 llm::InferenceResponse::InferredToken(t) => {
                     let mut reverse_buf = buf.clone();
@@ -95,6 +97,7 @@ cfg_if! {
         }
     }
 }
+// Extracting data from a request with ssr
 #[cfg(feature = "ssr")]
 pub async fn extract<F, E, T>(f: F) -> Result<T, ServerFnError>
     where

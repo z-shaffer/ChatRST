@@ -1,5 +1,5 @@
 use leptos::{*, html::Input};
-
+// Component for conversation window
 #[component]
 pub fn TypeArea(send: Action<String, Result<String, ServerFnError>>) -> impl IntoView {
     let input_ref = create_node_ref::<Input>();
